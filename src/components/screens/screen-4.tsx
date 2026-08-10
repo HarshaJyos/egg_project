@@ -10,7 +10,10 @@ const SwipeButton = ({ onSwipe, disabled }: { onSwipe: () => void; disabled: boo
   const [isCompleted, setIsCompleted] = useState(false);
 
   return (
-    <div className={`w-full max-w-[320px] h-16 bg-orange-100 border border-orange-200 rounded-2xl relative flex items-center justify-between px-2 select-none overflow-hidden shadow-inner ${disabled ? "opacity-60 pointer-events-none" : ""}`}>
+    <div 
+      onClick={disabled ? undefined : onSwipe}
+      className={`w-full max-w-[320px] h-16 bg-orange-100 border border-orange-200 rounded-2xl relative flex items-center justify-between px-2 select-none overflow-hidden shadow-inner cursor-pointer ${disabled ? "opacity-60 pointer-events-none" : ""}`}
+    >
       {/* Background slide progress color */}
       <div className="absolute inset-0 bg-[#F97316] opacity-10" />
 

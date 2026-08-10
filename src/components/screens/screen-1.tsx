@@ -8,7 +8,8 @@ export default function Screen1() {
 
   return (
     <div 
-      className="relative flex-1 flex flex-col justify-between p-6 bg-cover bg-center select-none"
+      onClick={startPurchaseFlow}
+      className="relative flex-1 flex flex-col justify-between p-6 bg-cover bg-center select-none cursor-pointer"
       style={{ backgroundImage: "url('/images/0.png')" }}
     >
       {/* Space above the board */}
@@ -17,8 +18,7 @@ export default function Screen1() {
       {/* Invisible clickable overlay button matching the background image's baked Tap to Start button */}
       <div className="mb-6 w-full flex justify-center">
         <button
-          onClick={startPurchaseFlow}
-          className="w-full max-w-[310px] h-16 bg-transparent border-none outline-none select-none cursor-pointer"
+          className="w-full max-w-[310px] h-16 bg-transparent border-none outline-none select-none pointer-events-none"
           aria-label="Tap to Start"
         />
       </div>

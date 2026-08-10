@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { useAppStore } from "../context/store";
 import { motion, AnimatePresence } from "framer-motion";
+import { useNavigation } from "../hooks/useNavigation";
 
 // Configuration of advertisements (modular list of video & image ads)
 const ADVERTISEMENTS = [
@@ -30,6 +31,8 @@ export default function AdManager() {
     adIndex, 
     setAdIndex 
   } = useAppStore();
+  
+  const { startPurchaseFlow } = useNavigation();
 
   const [progress, setProgress] = useState(0);
   const [isVideoLoadingError, setIsVideoLoadingError] = useState(false);
@@ -127,16 +130,20 @@ export default function AdManager() {
   return (
     <AnimatePresence>
       <motion.div 
+        onClick={startPurchaseFlow}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="absolute inset-0 z-50 flex flex-col justify-between bg-black text-white"
+        className="absolute inset-0 z-50 flex flex-col justify-between bg-black text-white cursor-pointer"
       >
         {/* Top Header bar */}
         <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-10">
           <span className="text-xs tracking-wider uppercase bg-white/20 px-2 py-1 rounded">Advertisement</span>
           <button 
-            onClick={handleSkip}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleSkip();
+            }}
             className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-sm hover:bg-zinc-200 transition active:scale-95 cursor-pointer"
           >
             Skip
