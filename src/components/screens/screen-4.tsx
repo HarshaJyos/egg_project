@@ -112,12 +112,19 @@ export default function Screen4() {
         name: "Egg Vending Kiosk",
         description: `Payment for ${cart.reduce((s, i) => s + i.quantity, 0)} egg trays`,
         order_id: data.orderId,
-        handler: function (response: any) {
+        handler: async function (response: any) {
           setIsProcessing(false);
           const payId = response.razorpay_payment_id;
           const store = useAppStore.getState();
           store.setRazorpayPaymentId(payId);
           store.setPaymentMethod("RAZORPAY" as any);
+          
+          try {
+            await fetch("/api/payment-status?action=set&status=success");
+          } catch (err) {
+            console.error("Failed to set payment status to success:", err);
+          }
+
           store.setScreen(7); // Go directly to Screen 7 (Success Page)
         },
         prefill: {

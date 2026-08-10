@@ -29,11 +29,12 @@ export default function Screen6() {
       try {
         const res = await fetch("/api/payment-status");
         const data = await res.json();
-        if (data.status === "SUCCESS") {
+        const status = data.status ? data.status.toUpperCase() : "";
+        if (status === "SUCCESS") {
           setPaymentStatus("SUCCESS");
           clearInterval(interval);
           setScreen(7); // Proceed to Screen 7 (Success Page)
-        } else if (data.status === "FAILED") {
+        } else if (status === "FAILED" || status === "FAIL") {
           setPaymentStatus("FAILED");
         }
       } catch (e) {
