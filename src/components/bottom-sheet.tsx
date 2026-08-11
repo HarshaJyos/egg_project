@@ -50,26 +50,26 @@ export default function BottomSheet({ isOpen, onClose, children }: BottomSheetPr
                 onClose();
               }
             }}
-            className="absolute bottom-0 left-0 right-0 max-h-[85%] bg-white rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)] z-50 flex flex-col overflow-hidden"
+            className="absolute bottom-0 left-0 right-0 h-[50%] bg-white rounded-t-3xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)] z-50 flex flex-col overflow-hidden"
           >
             {/* Drag Handle Bar */}
-            <div className="w-full flex justify-center py-3 cursor-grab active:cursor-grabbing">
-              <div className="w-12 h-1.5 rounded-full bg-zinc-300" />
+            <div className="w-full flex justify-center py-4 cursor-grab active:cursor-grabbing">
+              <div className="w-20 h-2.5 rounded-full bg-zinc-300" />
             </div>
 
             {/* Header with Close Icon */}
-            <div className="px-6 flex justify-between items-center border-b border-zinc-100 pb-3">
-              <h3 className="text-xl font-bold text-zinc-900">Your Cart</h3>
+            <div className="px-8 flex justify-between items-center border-b border-zinc-100 pb-5">
+              <h3 className="text-3xl font-black text-zinc-900">Your Cart</h3>
               <button 
                 onClick={onClose}
-                className="p-1.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200 transition active:scale-95"
+                className="p-2.5 rounded-full bg-zinc-100 text-zinc-600 hover:bg-zinc-200 transition active:scale-95"
               >
-                <X className="w-5 h-5" />
+                <X className="w-7 h-7" />
               </button>
             </div>
 
             {/* Sheet Body (scrollable content) */}
-            <div className="flex-1 overflow-y-auto px-6 py-4">
+            <div className="flex-1 overflow-y-auto px-8 py-6">
               {children}
             </div>
           </motion.div>

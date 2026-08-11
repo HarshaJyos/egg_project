@@ -18,7 +18,7 @@ const TrayIcon = (props: React.SVGProps<SVGSVGElement>) => (
 );
 
 export default function Screen3() {
-  const { cart, addTrayToCart, removeTrayFromCart, updateQuantity, setScreen } = useAppStore();
+  const { cart, addTrayToCart, removeTrayFromCart, updateQuantity, setScreen, subtotal, platformFee, cgst, sgst, grandTotal } = useAppStore();
   const [warning, setWarning] = useState<string | null>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
 
@@ -47,13 +47,7 @@ export default function Screen3() {
   // Total trays selected
   const totalTrays = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  // Price calculations
-  const calculateTotal = () => {
-    return cart.reduce((sum, item) => {
-      const trayInfo = EGG_TRAYS.find((t) => t.id === item.id);
-      return sum + (trayInfo ? trayInfo.basePrice * item.quantity : 0);
-    }, 0);
-  };
+
 
   const handleProceedToSummary = () => {
     if (totalTrays === 0) {
@@ -66,8 +60,8 @@ export default function Screen3() {
   return (
     <div className="relative flex-1 flex flex-col justify-between bg-[#FAF8F5] select-none overflow-hidden pb-24">
       {/* Decorative header - Cursive style with no wood background banner */}
-      <div className="pt-12 pb-4 flex justify-center select-none flex-shrink-0">
-        <h1 className="text-4xl text-[#4A2F13] font-serif italic font-extrabold text-center drop-shadow-sm select-none">
+      <div className="pt-20 pb-6 flex justify-center select-none flex-shrink-0">
+        <h1 className="text-[72px] text-[#4A2F13] font-serif italic font-extrabold text-center drop-shadow-sm select-none">
           Fresh Eggs
         </h1>
       </div>
@@ -79,16 +73,16 @@ export default function Screen3() {
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="absolute top-4 left-4 right-4 z-50 bg-red-500 text-white px-4 py-3 rounded-2xl flex items-center gap-3 shadow-lg border border-red-400"
+            className="absolute top-8 left-8 right-8 z-50 bg-red-500 text-white px-8 py-5 rounded-[24px] flex items-center gap-4 shadow-lg border border-red-400"
           >
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
-            <span className="text-sm font-extrabold">{warning}</span>
+            <AlertCircle className="w-9 h-9 flex-shrink-0" />
+            <span className="text-[22px] font-extrabold">{warning}</span>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Main egg tray list */}
-      <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5 select-none pb-24">
+      <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-6 select-none pb-40">
         {EGG_TRAYS.map((tray) => {
           const qty = getQty(tray.id);
           const isSelected = qty > 0;
@@ -97,15 +91,15 @@ export default function Screen3() {
             <div
               key={tray.id}
               onClick={() => handleTrayClick(tray.id)}
-              className={`flex flex-col gap-4 p-4 rounded-3xl border bg-white select-none transition ${
+              className={`flex flex-col gap-6 p-8 rounded-[36px] border-2 bg-white select-none transition ${
                 isSelected 
                   ? "border-amber-500 shadow-md ring-2 ring-amber-500/20" 
-                  : "border-zinc-100 shadow-sm hover:border-amber-200 cursor-pointer"
+                  : "border-zinc-200/60 shadow-sm hover:border-amber-200 cursor-pointer"
               }`}
             >
               {/* Product Info Row */}
-              <div className="flex items-center gap-4 select-none">
-                <div className="w-24 h-16 bg-zinc-50 border border-zinc-100 rounded-2xl overflow-hidden flex items-center justify-center flex-shrink-0">
+              <div className="flex items-center gap-6 select-none">
+                <div className="w-48 h-32 bg-zinc-50 border border-zinc-100 rounded-[24px] overflow-hidden flex items-center justify-center flex-shrink-0">
                   <img
                     src={tray.image}
                     alt={tray.name}
@@ -113,21 +107,21 @@ export default function Screen3() {
                   />
                 </div>
                 <div className="flex-1 flex flex-col select-none">
-                  <h3 className="font-extrabold text-lg text-zinc-900 leading-tight">
+                  <h3 className="font-extrabold text-[34px] text-zinc-900 leading-tight">
                     {tray.name}
                   </h3>
-                  <p className="text-xs font-semibold text-zinc-500 mt-0.5">
+                  <p className="text-[22px] font-semibold text-zinc-500 mt-2">
                     {tray.description}
                   </p>
-                  <p className="font-black text-xl text-amber-950 mt-1">
+                  <p className="font-black text-[48px] text-amber-950 mt-2">
                     ₹{tray.basePrice}
                   </p>
                 </div>
               </div>
 
               {/* Action row (Add to cart / Quantity Selector) */}
-              <div className="flex justify-between items-center border-t border-zinc-50 pt-3 select-none">
-                <span className={`text-xs font-bold ${tray.id === "bulk" ? "text-red-500" : "text-zinc-400"}`}>
+              <div className="flex justify-between items-center border-t-2 border-zinc-200/50 pt-5 select-none">
+                <span className={`text-[22px] font-extrabold ${tray.id === "bulk" ? "text-red-500" : "text-zinc-450"}`}>
                   {tray.id === "bulk" ? `Low Stock : ${tray.stock}` : `In Stock : ${tray.stock}`}
                 </span>
                 
@@ -145,7 +139,7 @@ export default function Screen3() {
                       e.stopPropagation();
                       addTrayToCart(tray.id);
                     }}
-                    className="px-4 py-2 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-sm rounded-full shadow-sm transition select-none cursor-pointer"
+                    className="px-9 py-4.5 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-[24px] rounded-full shadow-md transition select-none cursor-pointer"
                   >
                     Add to Cart
                   </button>
@@ -157,24 +151,24 @@ export default function Screen3() {
       </div>
 
       {/* Bottom Button Panel */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-white via-white to-transparent select-none z-20">
-        <div className="w-full h-16 bg-[#F97316] rounded-2xl shadow-lg border border-orange-400/50 flex items-center justify-between px-4 py-2 text-white font-extrabold text-lg select-none">
+      <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-white via-white to-transparent select-none z-20">
+        <div className="w-full h-[96px] bg-[#F97316] rounded-[24px] shadow-lg border border-orange-400/50 flex items-center justify-between px-8 py-4 text-white font-extrabold text-2xl select-none">
           {/* Left Side: Icon and Count */}
-          <div className="flex items-center gap-2.5 pl-2">
-            <TrayIcon className="w-6 h-6 text-white" />
-            <span className="text-xl tracking-wide">{totalTrays} {totalTrays === 1 ? "Tray" : "Trays"}</span>
+          <div className="flex items-center gap-3.5 pl-2">
+            <TrayIcon className="w-10 h-10 text-white" />
+            <span className="text-[32px] tracking-wide">{totalTrays} {totalTrays === 1 ? "Tray" : "Trays"}</span>
           </div>
 
           {/* Vertical Separator */}
-          <div className="h-8 w-px bg-white/30" />
+          <div className="h-12 w-px bg-white/30" />
 
           {/* Right Side: View Cart button */}
           <button
             onClick={() => setIsCartOpen(true)}
-            className="flex items-center gap-1.5 bg-white/20 hover:bg-white/35 active:scale-95 transition px-4 py-2 rounded-xl text-white select-none cursor-pointer"
+            className="flex items-center gap-2 bg-white/20 hover:bg-white/35 active:scale-95 transition px-8 py-4.5 rounded-[16px] text-white select-none cursor-pointer"
           >
-            <span className="text-sm font-extrabold">View Cart</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
+            <span className="text-[24px] font-extrabold">View Cart</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
               <path d="M9 18l6-6-6-6" />
             </svg>
           </button>
@@ -184,27 +178,27 @@ export default function Screen3() {
       {/* Bottom Sheet Cart Drawer */}
       <BottomSheet isOpen={isCartOpen} onClose={() => setIsCartOpen(false)}>
         {cart.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-10 text-center gap-2 select-none">
-            <p className="text-zinc-500 font-semibold text-lg">Your cart is empty</p>
-            <p className="text-zinc-400 text-sm">Select an egg tray above to get started</p>
+          <div className="flex flex-col items-center justify-center py-14 text-center gap-3 select-none">
+            <p className="text-zinc-500 font-extrabold text-[32px]">Your cart is empty</p>
+            <p className="text-zinc-400 text-[24px]">Select an egg tray above to get started</p>
           </div>
         ) : (
-          <div className="flex flex-col gap-6 select-none">
+          <div className="flex flex-col gap-8 select-none">
             {/* Cart item list */}
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-5">
               {cart.map((item) => {
                 const tray = EGG_TRAYS.find((t) => t.id === item.id);
                 if (!tray) return null;
 
                 return (
-                  <div key={item.id} className="flex items-center justify-between border-b border-zinc-100 pb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-14 h-10 bg-zinc-50 border border-zinc-100 rounded-xl overflow-hidden flex-shrink-0">
+                  <div key={item.id} className="flex items-center justify-between border-b border-zinc-100 pb-5">
+                    <div className="flex items-center gap-4">
+                      <div className="w-28 h-20 bg-zinc-50 border border-zinc-100 rounded-[16px] overflow-hidden flex-shrink-0">
                         <img src={tray.image} alt={tray.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="flex flex-col">
-                        <span className="font-extrabold text-sm text-zinc-900 leading-none">{tray.name}</span>
-                        <span className="font-bold text-amber-950 text-base mt-1">₹{tray.basePrice * item.quantity}</span>
+                        <span className="font-extrabold text-[26px] text-zinc-900 leading-none">{tray.name}</span>
+                        <span className="font-black text-amber-950 text-[30px] mt-2">₹{tray.basePrice * item.quantity}</span>
                       </div>
                     </div>
                     <QuantitySelector 
@@ -218,21 +212,33 @@ export default function Screen3() {
             </div>
 
             {/* Price Details */}
-            <div className="bg-zinc-50 rounded-2xl p-4 flex flex-col gap-2 border border-zinc-100 select-none">
-              <div className="flex justify-between font-semibold text-sm text-zinc-500">
+            <div className="bg-zinc-50 rounded-[24px] p-8 flex flex-col gap-3 border border-zinc-100 select-none">
+              <div className="flex justify-between font-semibold text-[22px] text-zinc-500">
                 <span>Subtotal</span>
-                <span>₹{calculateTotal()}</span>
+                <span>₹{subtotal.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between font-black text-lg text-amber-950 border-t border-zinc-100 pt-2">
+              <div className="flex justify-between font-semibold text-[22px] text-zinc-500">
+                <span>Platform Fee</span>
+                <span>₹{platformFee.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-[22px] text-zinc-500">
+                <span>CGST (2.5%)</span>
+                <span>₹{cgst.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-semibold text-[22px] text-zinc-500">
+                <span>SGST (2.5%)</span>
+                <span>₹{sgst.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-black text-[34px] text-amber-950 border-t-2 border-zinc-100 pt-3.5">
                 <span>Grand Total</span>
-                <span>₹{calculateTotal()}</span>
+                <span>₹{grandTotal.toFixed(2)}</span>
               </div>
             </div>
 
             {/* Checkout Button */}
             <button
               onClick={handleProceedToSummary}
-              className="w-full py-4 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-lg rounded-2xl shadow-md transition select-none cursor-pointer"
+              className="w-full py-6 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-extrabold text-[30px] rounded-[20px] shadow-md transition select-none cursor-pointer"
             >
               Proceed to Summary
             </button>

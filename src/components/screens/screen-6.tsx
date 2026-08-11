@@ -5,14 +5,10 @@ import { useAppStore } from "../../context/store";
 import { EGG_TRAYS } from "../../utils/constants";
 
 export default function Screen6() {
-  const { cart, setScreen } = useAppStore();
+  const { cart, setScreen, grandTotal } = useAppStore();
   const [paymentStatus, setPaymentStatus] = useState<"PENDING" | "SUCCESS" | "FAILED">("PENDING");
 
-  // Calculations
-  const amount = cart.reduce((sum, item) => {
-    const tray = EGG_TRAYS.find((t) => t.id === item.id);
-    return sum + (tray ? tray.basePrice * item.quantity : 0);
-  }, 0);
+  const amount = grandTotal;
 
   // Initialize status on mount and poll server status
   useEffect(() => {
@@ -66,21 +62,21 @@ export default function Screen6() {
   return (
     <div className="relative flex-1 flex flex-col justify-between bg-[#FAF8F5] select-none overflow-hidden pb-24">
       {/* Decorative header - Cursive style with no wood background banner */}
-      <div className="pt-12 pb-2 flex flex-col items-center justify-center select-none flex-shrink-0">
-        <h1 className="text-4xl text-[#4A2F13] font-serif italic font-extrabold text-center drop-shadow-sm select-none">
+      <div className="pt-20 pb-6 flex flex-col items-center justify-center select-none flex-shrink-0">
+        <h1 className="text-[72px] text-[#4A2F13] font-serif italic font-extrabold text-center drop-shadow-sm select-none">
           Scan & Pay
         </h1>
-        <div className="flex flex-col items-center justify-center text-center mt-2">
-          <span className="text-[13px] font-bold text-zinc-800 leading-snug">Scan QR code using</span>
-          <span className="text-[13px] font-bold text-zinc-800 leading-snug">any UPI app</span>
+        <div className="flex flex-col items-center justify-center text-center mt-4">
+          <span className="text-[26px] font-extrabold text-zinc-800 leading-snug">Scan QR code using</span>
+          <span className="text-[26px] font-extrabold text-zinc-800 leading-snug">any UPI app</span>
         </div>
       </div>
 
       {/* Main Container */}
-      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-5 select-none min-h-0">
+      <div className="flex-1 flex flex-col items-center justify-center px-6 gap-10 select-none min-h-0 pb-40">
         
         {/* QR Code Dashed Card */}
-        <div className="border border-dashed border-zinc-300 rounded-3xl bg-white p-5 shadow-sm flex items-center justify-center w-72 h-72">
+        <div className="border-2 border-dashed border-zinc-300 rounded-[36px] bg-white p-9 shadow-sm flex items-center justify-center w-[480px] h-[480px]">
           <img 
             src="/images/page_6_img_2.png" 
             alt="Payment QR Code" 
@@ -90,27 +86,27 @@ export default function Screen6() {
 
         {/* Amount & Status Block */}
         <div className="flex flex-col items-center text-center flex-shrink-0">
-          <span className="text-xs font-black text-[#4A2F13]/70 uppercase tracking-widest">Amount</span>
-          <span className="font-black text-4xl text-[#4A2F13] mt-1">₹{amount}</span>
+          <span className="text-[22px] font-black text-[#4A2F13]/70 uppercase tracking-widest">Amount</span>
+          <span className="font-black text-[64px] text-[#4A2F13] mt-1.5">₹{amount.toFixed(2)}</span>
           
           {paymentStatus === "FAILED" ? (
-            <div className="flex flex-col items-center mt-4">
-              <span className="text-sm font-black text-red-500 tracking-wide">
+            <div className="flex flex-col items-center mt-5">
+              <span className="text-[24px] font-black text-red-500 tracking-wide">
                 Payment Failed or Cancelled
               </span>
               <button
                 onClick={retryPayment}
-                className="text-xs font-bold text-orange-500 hover:text-orange-600 underline mt-1.5 cursor-pointer select-none"
+                className="text-[20px] font-extrabold text-orange-500 hover:text-orange-600 underline mt-3.5 cursor-pointer select-none"
               >
                 Tap to Retry Payment
               </button>
             </div>
           ) : (
             <div className="flex flex-col items-center">
-              <span className="text-sm font-extrabold text-zinc-500 mt-4 tracking-wide animate-pulse">
+              <span className="text-[24px] font-black text-zinc-500 mt-6 tracking-wide animate-pulse">
                 Waiting for the Payment...
               </span>
-              <span className="text-xs font-semibold text-zinc-400 mt-1">
+              <span className="text-[18px] font-semibold text-zinc-400 mt-2.5">
                 Please Don't Close the Screen
               </span>
             </div>
@@ -119,10 +115,10 @@ export default function Screen6() {
       </div>
 
       {/* Bottom Cancel Button Panel */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5] to-transparent select-none z-10">
+      <div className="absolute bottom-0 left-0 right-0 p-8 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5] to-transparent select-none z-10">
         <button
           onClick={handleCancel}
-          className="w-full py-4 bg-[#FDBA74] hover:bg-orange-400 active:scale-[0.98] text-white font-extrabold text-2xl rounded-2xl shadow transition select-none cursor-pointer"
+          className="w-full py-6 bg-[#FDBA74] hover:bg-orange-400 active:scale-[0.98] text-white font-extrabold text-[36px] rounded-3xl shadow transition select-none cursor-pointer"
         >
           Cancel
         </button>

@@ -136,17 +136,19 @@ export default function AdManager() {
         exit={{ opacity: 0 }}
         className="absolute inset-0 z-50 flex flex-col justify-between bg-black text-white cursor-pointer"
       >
-        {/* Top Header bar */}
-        <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-gradient-to-b from-black/80 to-transparent z-10">
-          <span className="text-xs tracking-wider uppercase bg-white/20 px-2 py-1 rounded">Advertisement</span>
+        {/* Skip button floating at the middle-bottom right, easily reachable on a portrait kiosk */}
+        <div className="absolute bottom-[350px] right-6 z-30">
           <button 
             onClick={(e) => {
               e.stopPropagation();
               handleSkip();
             }}
-            className="px-4 py-1.5 rounded-full bg-white text-black font-semibold text-sm hover:bg-zinc-200 transition active:scale-95 cursor-pointer"
+            className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-black/70 border-2 border-zinc-700/80 text-white font-black text-[24px] uppercase tracking-wider hover:bg-black/90 hover:border-white transition active:scale-95 duration-200 cursor-pointer shadow-lg"
           >
-            Skip
+            <span>Skip</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+              <path d="M5 12h14M12 5l7 7-7 7" />
+            </svg>
           </button>
         </div>
 

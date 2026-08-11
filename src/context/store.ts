@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { TrayType, CartItem, PaymentMethod, DoorStatus, CardDetails } from "../types";
+import { EGG_TRAYS } from "../utils/constants";
 
 export interface AppState {
   currentScreen: number;
@@ -13,6 +14,13 @@ export interface AppState {
   isAdActive: boolean;
   adIndex: number;
   razorpayPaymentId: string;
+  
+  // Centralized calculations (BookMyShow-style)
+  subtotal: number;
+  platformFee: number;
+  cgst: number;
+  sgst: number;
+  grandTotal: number;
   
   // Navigation
   setScreen: (screen: number) => void;
@@ -46,6 +54,30 @@ const initialCardDetails: CardDetails = {
   cardHolder: "",
 };
 
+const PLATFORM_FEE = 2.00; // BookMyShow-style flat platform fee
+
+const calculateTotals = (cart: CartItem[]) => {
+  const subtotal = cart.reduce((total, item) => {
+    const tray = EGG_TRAYS.find((t) => t.id === item.id);
+    return total + (tray ? tray.basePrice * item.quantity : 0);
+  }, 0);
+  
+  if (subtotal === 0) {
+    return { subtotal: 0, platformFee: 0, cgst: 0, sgst: 0, grandTotal: 0 };
+  }
+  
+  const platformFee = PLATFORM_FEE;
+  const taxableAmount = subtotal + platformFee;
+  
+  // CGST 2.5% and SGST 2.5%
+  const cgst = Math.round(taxableAmount * 0.025 * 100) / 100;
+  const sgst = Math.round(taxableAmount * 0.025 * 100) / 100;
+  
+  const grandTotal = Math.round((taxableAmount + cgst + sgst) * 100) / 100;
+  
+  return { subtotal, platformFee, cgst, sgst, grandTotal };
+};
+
 export const useAppStore = create<AppState>((set, get) => ({
   currentScreen: 1,
   cart: [],
@@ -62,27 +94,39 @@ export const useAppStore = create<AppState>((set, get) => ({
   isAdActive: true, // starts with fullscreen advertisement
   adIndex: 0,
   razorpayPaymentId: "",
+  
+  // Centralized calculations initial state
+  subtotal: 0,
+  platformFee: 0,
+  cgst: 0,
+  sgst: 0,
+  grandTotal: 0,
 
   setScreen: (screen) => set({ currentScreen: screen }),
   setAdActive: (active) => set({ isAdActive: active }),
   setAdIndex: (idx) => set({ adIndex: idx }),
 
   addTrayToCart: (id) => set((state) => {
-    // If already in cart, do nothing, else add with quantity 1
     const exists = state.cart.find((item) => item.id === id);
     if (exists) return {};
-    
-    // Check stock
     if (state.stock[id] < 1) return {};
     
+    const newCart = [...state.cart, { id, quantity: 1 }];
+    const totals = calculateTotals(newCart);
     return {
-      cart: [...state.cart, { id, quantity: 1 }],
+      cart: newCart,
+      ...totals
     };
   }),
 
-  removeTrayFromCart: (id) => set((state) => ({
-    cart: state.cart.filter((item) => item.id !== id),
-  })),
+  removeTrayFromCart: (id) => set((state) => {
+    const newCart = state.cart.filter((item) => item.id !== id);
+    const totals = calculateTotals(newCart);
+    return {
+      cart: newCart,
+      ...totals
+    };
+  }),
 
   updateQuantity: (id, qty) => {
     const state = get();
@@ -98,22 +142,26 @@ export const useAppStore = create<AppState>((set, get) => ({
     }
 
     set((state) => {
-      // If quantity is 0, keep it in cart but with 0 (or remove it? 
-      // wait, screen 3B allows showing (-) 0 (+), so we should keep it in cart or remove depending on tray state.
-      // Wait, screen 3B quantity selector has minus/plus. If quantity becomes 0, 
-      // it can be kept or removed. Let's update the quantity.
       const exists = state.cart.find((item) => item.id === id);
       let newCart = [...state.cart];
       
       if (exists) {
-        newCart = state.cart.map((item) => 
-          item.id === id ? { ...item, quantity: qty } : item
-        );
+        if (qty === 0) {
+          newCart = state.cart.filter((item) => item.id !== id);
+        } else {
+          newCart = state.cart.map((item) => 
+            item.id === id ? { ...item, quantity: qty } : item
+          );
+        }
       } else if (qty > 0) {
         newCart.push({ id, quantity: qty });
       }
       
-      return { cart: newCart };
+      const totals = calculateTotals(newCart);
+      return { 
+        cart: newCart,
+        ...totals
+      };
     });
     
     return { success: true };
@@ -129,7 +177,7 @@ export const useAppStore = create<AppState>((set, get) => ({
 
   setDoorStatus: (status) => set({ doorStatus: status }),
 
-  resetCart: () => set({ cart: [] }),
+  resetCart: () => set({ cart: [], subtotal: 0, platformFee: 0, cgst: 0, sgst: 0, grandTotal: 0 }),
   
   resetAll: () => set({
     currentScreen: 1,
@@ -146,5 +194,10 @@ export const useAppStore = create<AppState>((set, get) => ({
     doorStatus: "closed",
     isAdActive: false,
     razorpayPaymentId: "",
+    subtotal: 0,
+    platformFee: 0,
+    cgst: 0,
+    sgst: 0,
+    grandTotal: 0
   }),
 }));

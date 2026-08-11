@@ -6,7 +6,7 @@ import { EGG_TRAYS } from "../../utils/constants";
 import { CreditCard as CardIcon, Wallet as WalletIcon, Landmark, ChevronRight, Check } from "lucide-react";
 
 export default function Screen5() {
-  const { cart, paymentMethod, setPaymentMethod, setScreen } = useAppStore();
+  const { cart, paymentMethod, setPaymentMethod, setScreen, grandTotal } = useAppStore();
 
   // Load Razorpay Script dynamically on mount
   useEffect(() => {
@@ -63,11 +63,7 @@ export default function Screen5() {
     }
   };
 
-  // Calculations
-  const amountPayable = cart.reduce((sum, item) => {
-    const tray = EGG_TRAYS.find((t) => t.id === item.id);
-    return sum + (tray ? tray.basePrice * item.quantity : 0);
-  }, 0);
+  const amountPayable = grandTotal;
 
   // Card Network helper
   const getCardType = (num: string) => {
@@ -229,45 +225,45 @@ export default function Screen5() {
   return (
     <div className="relative flex-1 flex flex-col justify-between bg-[#FAF8F5] select-none overflow-hidden pb-24">
       {/* Decorative header - Cursive style with no wood background banner */}
-      <div className="pt-12 pb-4 flex justify-center select-none flex-shrink-0">
-        <h1 className="text-4xl text-[#4A2F13] font-serif italic font-extrabold text-center drop-shadow-sm select-none">
+      <div className="pt-20 pb-6 flex justify-center select-none flex-shrink-0">
+        <h1 className="text-[72px] text-[#4A2F13] font-serif italic font-extrabold text-center drop-shadow-sm select-none">
           Payment
         </h1>
       </div>
 
       {/* Main Container */}
-      <div className="flex-1 overflow-y-auto p-5 flex flex-col gap-5 select-none min-h-0">
+      <div className="flex-1 overflow-y-auto p-8 flex flex-col gap-8 select-none min-h-0 pb-40">
         {/* Dashed Border Card */}
-        <div className="border border-dashed border-zinc-300 rounded-3xl bg-white p-5 shadow-sm flex flex-col gap-4 flex-shrink-0">
+        <div className="border-2 border-dashed border-zinc-300 rounded-[36px] bg-white p-8 shadow-sm flex flex-col gap-6 flex-shrink-0">
           
           {/* Amount Payable Display */}
-          <div className="flex flex-col items-center text-center pb-4 border-b border-zinc-100">
-            <span className="text-sm font-semibold text-zinc-500">Amount Payable</span>
-            <span className="font-black text-4xl text-amber-950 mt-1">₹{amountPayable}</span>
+          <div className="flex flex-col items-center text-center pb-6 border-b-2 border-zinc-100">
+            <span className="text-[24px] font-bold text-zinc-500">Amount Payable</span>
+            <span className="font-black text-[54px] text-amber-950 mt-2">₹{amountPayable.toFixed(2)}</span>
           </div>
 
           {/* Payment Methods selector (List container style) */}
-          <div className="flex flex-col border border-zinc-100 rounded-2xl overflow-hidden bg-white">
+          <div className="flex flex-col border-2 border-zinc-150 rounded-[24px] overflow-hidden bg-white">
             
             {/* UPI Option Row */}
-            <div className="border-b border-zinc-100">
+            <div className="border-b-2 border-zinc-150">
               <button
                 onClick={() => toggleMethod("upi")}
-                className="w-full flex items-center justify-between p-4 hover:bg-zinc-50 transition text-left cursor-pointer"
+                className="w-full flex items-center justify-between p-6 hover:bg-zinc-50 transition text-left cursor-pointer"
               >
-                <div className="flex items-center gap-3.5">
-                  <div className="flex items-center justify-center bg-zinc-100/80 rounded border border-zinc-200/50 px-1.5 py-0.5">
-                    <span className="font-black italic text-[9px] tracking-tighter text-zinc-700">UPI</span>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-center bg-zinc-100/80 rounded-md border-2 border-zinc-200/50 px-2.5 py-1">
+                    <span className="font-black italic text-[11px] tracking-tighter text-zinc-700">UPI</span>
                   </div>
-                  <span className="font-extrabold text-zinc-800 text-sm">Pay via UPI</span>
+                  <span className="font-extrabold text-zinc-800 text-[26px]">Pay via UPI</span>
                 </div>
-                <ChevronRight className={`w-5 h-5 text-zinc-400 transition-transform ${expandedMethod === "upi" ? "rotate-90" : ""}`} />
+                <ChevronRight className={`w-8 h-8 text-zinc-400 transition-transform ${expandedMethod === "upi" ? "rotate-90" : ""}`} />
               </button>
 
               {/* UPI Expanded Content */}
               {expandedMethod === "upi" && (
-                <div className="px-4 pb-5 pt-1 bg-zinc-50/50 flex flex-col gap-4 border-t border-zinc-50">
-                  <div className="grid grid-cols-2 gap-2 mt-2">
+                <div className="px-6 pb-6 pt-1 bg-zinc-50/50 flex flex-col gap-5 border-t-2 border-zinc-50">
+                  <div className="grid grid-cols-2 gap-3 mt-2">
                     {["Google Pay", "PhonePe", "Paytm", "BHIM UPI", "Amazon Pay UPI", "Other UPI Apps"].map((app) => (
                       <button
                         key={app}
@@ -276,7 +272,7 @@ export default function Screen5() {
                           setIsUpiVerified(false);
                           setUpiId("");
                         }}
-                        className={`py-2 px-1 text-center font-extrabold text-xs rounded-xl border transition cursor-pointer ${
+                        className={`py-4 px-2 text-center font-black text-[18px] rounded-2xl border-2 transition cursor-pointer ${
                           selectedUpiApp === app
                             ? "border-orange-500 bg-orange-50 text-orange-950 shadow-sm"
                             : "border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-600"
@@ -287,9 +283,9 @@ export default function Screen5() {
                     ))}
                   </div>
 
-                  <div className="flex flex-col gap-1.5 mt-1">
-                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">OR Enter UPI ID</span>
-                    <div className="flex gap-2">
+                  <div className="flex flex-col gap-2.5 mt-1">
+                    <span className="text-[18px] font-black text-zinc-400 uppercase tracking-widest">OR Enter UPI ID</span>
+                    <div className="flex gap-3">
                       <input
                         type="text"
                         placeholder="username@bank"
@@ -299,14 +295,14 @@ export default function Screen5() {
                           setSelectedUpiApp(null);
                           setIsUpiVerified(false);
                         }}
-                        className="flex-1 px-3 py-2 bg-white border border-zinc-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
+                        className="flex-1 px-4 py-3.5 bg-white border-2 border-zinc-200 rounded-2xl text-[20px] font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
                       />
                       <button
                         onClick={() => {
                           if (upiId.trim()) setIsUpiVerified(true);
                         }}
                         disabled={!upiId.trim() || isUpiVerified}
-                        className={`px-4 py-2 rounded-xl font-bold text-xs border transition cursor-pointer select-none ${
+                        className={`px-6 py-3.5 rounded-2xl font-black text-[18px] border-2 transition cursor-pointer select-none ${
                           isUpiVerified
                             ? "bg-emerald-500 text-white border-emerald-500"
                             : "border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 disabled:opacity-50"
@@ -321,87 +317,87 @@ export default function Screen5() {
             </div>
 
             {/* Card Option Row */}
-            <div className="border-b border-zinc-100">
+            <div className="border-b-2 border-zinc-150">
               <button
                 onClick={() => toggleMethod("card")}
-                className="w-full flex items-center justify-between p-4 hover:bg-zinc-50 transition text-left cursor-pointer"
+                className="w-full flex items-center justify-between p-6 hover:bg-zinc-50 transition text-left cursor-pointer"
               >
-                <div className="flex items-center gap-3.5">
-                  <CardIcon className="w-5 h-5 text-zinc-500" />
+                <div className="flex items-center gap-4">
+                  <CardIcon className="w-8 h-8 text-zinc-500" />
                   <div className="flex flex-col">
-                    <span className="font-extrabold text-zinc-800 text-sm leading-none">Card</span>
-                    <span className="text-[10px] text-zinc-400 font-semibold mt-1">Credit/Debit Cards</span>
+                    <span className="font-extrabold text-zinc-800 text-[26px] leading-none">Card</span>
+                    <span className="text-[18px] text-zinc-400 font-semibold mt-1.5">Credit/Debit Cards</span>
                   </div>
                 </div>
-                <ChevronRight className={`w-5 h-5 text-zinc-400 transition-transform ${expandedMethod === "card" ? "rotate-90" : ""}`} />
+                <ChevronRight className={`w-8 h-8 text-zinc-400 transition-transform ${expandedMethod === "card" ? "rotate-90" : ""}`} />
               </button>
 
               {/* Card Expanded Content */}
               {expandedMethod === "card" && (
-                <div className="px-4 pb-5 pt-2 bg-zinc-50/50 flex flex-col gap-3.5 border-t border-zinc-50 text-left">
+                <div className="px-6 pb-6 pt-2 bg-zinc-50/50 flex flex-col gap-5 border-t-2 border-zinc-50 text-left">
                   
                   {/* Supported Networks badges */}
-                  <div className="flex gap-2 items-center mt-1">
-                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Supported Cards:</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-black border tracking-wider ${getCardType(cardNumber) === "Visa" ? "bg-blue-500 text-white border-blue-500" : "bg-white text-zinc-400 border-zinc-200"}`}>VISA</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-black border tracking-wider ${getCardType(cardNumber) === "Mastercard" ? "bg-red-500 text-white border-red-500" : "bg-white text-zinc-400 border-zinc-200"}`}>MC</span>
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded font-black border tracking-wider ${getCardType(cardNumber) === "RuPay" ? "bg-orange-500 text-white border-orange-500" : "bg-white text-zinc-400 border-zinc-200"}`}>RuPay</span>
+                  <div className="flex gap-3 items-center mt-1">
+                    <span className="text-[18px] font-black text-zinc-400 uppercase tracking-wide">Supported:</span>
+                    <span className={`text-sm px-3 py-1.5 rounded font-black border-2 tracking-wider ${getCardType(cardNumber) === "Visa" ? "bg-blue-500 text-white border-blue-500" : "bg-white text-zinc-400 border-zinc-200"}`}>VISA</span>
+                    <span className={`text-sm px-3 py-1.5 rounded font-black border-2 tracking-wider ${getCardType(cardNumber) === "Mastercard" ? "bg-red-500 text-white border-red-500" : "bg-white text-zinc-400 border-zinc-200"}`}>MC</span>
+                    <span className={`text-sm px-3 py-1.5 rounded font-black border-2 tracking-wider ${getCardType(cardNumber) === "RuPay" ? "bg-orange-500 text-white border-orange-500" : "bg-white text-zinc-400 border-zinc-200"}`}>RuPay</span>
                   </div>
 
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase">Card Number</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[18px] font-black text-zinc-400 uppercase tracking-wider">Card Number</label>
                     <input
                       type="text"
                       placeholder="xxxx xxxx xxxx xxxx"
                       value={cardNumber}
                       onChange={handleCardNumberChange}
-                      className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
+                      className="w-full px-4 py-3.5 bg-white border-2 border-zinc-200 rounded-2xl text-[20px] font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
                     />
                   </div>
 
-                  <div className="flex flex-col gap-1">
-                    <label className="text-[10px] font-black text-zinc-400 uppercase">Card Holder Name</label>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[18px] font-black text-zinc-400 uppercase tracking-wider">Card Holder Name</label>
                     <input
                       type="text"
                       placeholder="Name on card"
                       value={cardHolder}
                       onChange={(e) => setCardHolder(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
+                      className="w-full px-4 py-3.5 bg-white border-2 border-zinc-200 rounded-2xl text-[20px] font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3.5">
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black text-zinc-400 uppercase">Expiry Date</label>
+                  <div className="grid grid-cols-2 gap-5">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[18px] font-black text-zinc-400 uppercase tracking-wider">Expiry Date</label>
                       <input
                         type="text"
                         placeholder="MM/YY"
                         value={expiry}
                         onChange={handleExpiryChange}
-                        className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
+                        className="w-full px-4 py-3.5 bg-white border-2 border-zinc-200 rounded-2xl text-[20px] font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
                       />
                     </div>
-                    <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black text-zinc-400 uppercase">CVV</label>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[18px] font-black text-zinc-400 uppercase tracking-wider">CVV</label>
                       <input
                         type="password"
                         placeholder="xxx"
                         value={cvv}
                         onChange={handleCvvChange}
-                        className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
+                        className="w-full px-4 py-3.5 bg-white border-2 border-zinc-200 rounded-2xl text-[20px] font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
                       />
                     </div>
                   </div>
 
                   {/* Save Card Checkbox */}
-                  <label className="flex items-center gap-2 cursor-pointer mt-1 select-none">
+                  <label className="flex items-center gap-3 cursor-pointer mt-1 select-none">
                     <input
                       type="checkbox"
                       checked={saveCard}
                       onChange={(e) => setSaveCard(e.target.checked)}
-                      className="w-4 h-4 text-orange-500 border-zinc-300 rounded focus:ring-orange-500"
+                      className="w-6 h-6 text-orange-500 border-zinc-350 rounded focus:ring-orange-500"
                     />
-                    <span className="text-xs font-semibold text-zinc-500 select-none">Save this Card for future purchases (optional)</span>
+                    <span className="text-[18px] font-semibold text-zinc-500 select-none">Save this Card for future purchases (optional)</span>
                   </label>
 
                 </div>
@@ -409,30 +405,30 @@ export default function Screen5() {
             </div>
 
             {/* Wallet Option Row */}
-            <div className="border-b border-zinc-100">
+            <div className="border-b-2 border-zinc-150">
               <button
                 onClick={() => toggleMethod("wallet")}
-                className="w-full flex items-center justify-between p-4 hover:bg-zinc-50 transition text-left cursor-pointer"
+                className="w-full flex items-center justify-between p-6 hover:bg-zinc-50 transition text-left cursor-pointer"
               >
-                <div className="flex items-center gap-3.5">
-                  <WalletIcon className="w-5 h-5 text-zinc-500" />
+                <div className="flex items-center gap-4">
+                  <WalletIcon className="w-8 h-8 text-zinc-500" />
                   <div className="flex flex-col">
-                    <span className="font-extrabold text-zinc-800 text-sm leading-none">Wallet</span>
-                    <span className="text-[10px] text-zinc-400 font-semibold mt-1">Phonepe, paytm..</span>
+                    <span className="font-extrabold text-zinc-800 text-[26px] leading-none">Wallet</span>
+                    <span className="text-[18px] text-zinc-400 font-semibold mt-1.5">Phonepe, paytm..</span>
                   </div>
                 </div>
-                <ChevronRight className={`w-5 h-5 text-zinc-400 transition-transform ${expandedMethod === "wallet" ? "rotate-90" : ""}`} />
+                <ChevronRight className={`w-8 h-8 text-zinc-400 transition-transform ${expandedMethod === "wallet" ? "rotate-90" : ""}`} />
               </button>
 
               {/* Wallet Expanded Content */}
               {expandedMethod === "wallet" && (
-                <div className="px-4 pb-5 pt-2 bg-zinc-50/50 flex flex-col gap-3 border-t border-zinc-50">
-                  <div className="grid grid-cols-2 gap-2 mt-1">
+                <div className="px-6 pb-6 pt-2 bg-zinc-50/50 flex flex-col gap-4 border-t-2 border-zinc-50">
+                  <div className="grid grid-cols-2 gap-3 mt-1">
                     {["PhonePe Wallet", "Paytm Wallet", "Amazon Pay Wallet", "Mobikwik", "Freecharge", "Airtel Money"].map((wallet) => (
                       <button
                         key={wallet}
                         onClick={() => setSelectedWallet(wallet)}
-                        className={`py-2 px-1 text-center font-extrabold text-xs rounded-xl border transition cursor-pointer ${
+                        className={`py-4 px-2 text-center font-black text-[18px] rounded-2xl border-2 transition cursor-pointer ${
                           selectedWallet === wallet
                             ? "border-orange-500 bg-orange-50 text-orange-950 shadow-sm"
                             : "border-zinc-200 bg-white hover:bg-zinc-50 text-zinc-600"
@@ -450,18 +446,18 @@ export default function Screen5() {
             <div>
               <button
                 onClick={() => toggleMethod("netbanking")}
-                className="w-full flex items-center justify-between p-4 hover:bg-zinc-50 transition text-left cursor-pointer"
+                className="w-full flex items-center justify-between p-6 hover:bg-zinc-50 transition text-left cursor-pointer"
               >
-                <div className="flex items-center gap-3.5">
-                  <Landmark className="w-5 h-5 text-zinc-500" />
-                  <span className="font-extrabold text-zinc-800 text-sm">Net Banking</span>
+                <div className="flex items-center gap-4">
+                  <Landmark className="w-8 h-8 text-zinc-500" />
+                  <span className="font-extrabold text-zinc-800 text-[26px]">Net Banking</span>
                 </div>
-                <ChevronRight className={`w-5 h-5 text-zinc-400 transition-transform ${expandedMethod === "netbanking" ? "rotate-90" : ""}`} />
+                <ChevronRight className={`w-8 h-8 text-zinc-400 transition-transform ${expandedMethod === "netbanking" ? "rotate-90" : ""}`} />
               </button>
 
               {/* Net Banking Expanded Content */}
               {expandedMethod === "netbanking" && (
-                <div className="px-4 pb-5 pt-3 bg-zinc-50/50 flex flex-col gap-3.5 border-t border-zinc-50">
+                <div className="px-6 pb-6 pt-3 bg-zinc-50/50 flex flex-col gap-4 border-t-2 border-zinc-50">
                   
                   {/* Searchable banks input */}
                   <input
@@ -469,24 +465,24 @@ export default function Screen5() {
                     placeholder="Search your Bank..."
                     value={bankQuery}
                     onChange={(e) => setBankQuery(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
+                    className="w-full px-4 py-3.5 bg-white border-2 border-zinc-200 rounded-2xl text-[22px] font-semibold focus:outline-none focus:border-orange-500 text-zinc-800"
                   />
 
                   {/* Filtered list of banks */}
-                  <div className="max-h-40 overflow-y-auto flex flex-col border border-zinc-200/50 rounded-xl bg-white select-none">
+                  <div className="max-h-64 overflow-y-auto flex flex-col border-2 border-zinc-200/50 rounded-2xl bg-white select-none">
                     {filteredBanks.length === 0 ? (
-                      <span className="text-xs font-semibold text-zinc-400 p-3 text-center">No banks found</span>
+                      <span className="text-[20px] font-semibold text-zinc-400 p-4 text-center">No banks found</span>
                     ) : (
                       filteredBanks.map((bank) => (
                         <button
                           key={bank}
                           onClick={() => setSelectedBank(bank)}
-                          className={`w-full flex items-center justify-between px-3.5 py-2.5 text-left border-b border-zinc-50 last:border-b-0 hover:bg-zinc-50 transition cursor-pointer text-xs font-bold ${
+                          className={`w-full flex items-center justify-between px-5 py-3.5 text-left border-b border-zinc-50 last:border-b-0 hover:bg-zinc-50 transition cursor-pointer text-[20px] font-extrabold ${
                             selectedBank === bank ? "bg-orange-50/60 text-orange-950" : "text-zinc-700"
                           }`}
                         >
                           <span>{bank}</span>
-                          {selectedBank === bank && <Check className="w-4 h-4 text-orange-500" />}
+                          {selectedBank === bank && <Check className="w-6 h-6 text-orange-500" />}
                         </button>
                       ))
                     )}
@@ -500,23 +496,23 @@ export default function Screen5() {
         </div>
 
         {/* Razorpay Secured label */}
-        <div className="flex justify-center items-center gap-1.5 text-xs text-zinc-500 font-bold mt-1">
+        <div className="flex justify-center items-center gap-2.5 text-[20px] text-zinc-500 font-extrabold mt-6 select-none">
           <span>Secured by</span>
-          <div className="flex items-center gap-1">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" className="w-4 h-4 text-sky-600">
+          <div className="flex items-center gap-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" className="w-8 h-8 text-sky-600">
               <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
             </svg>
-            <span className="font-extrabold text-slate-800 text-sm italic tracking-tight">Razorpay</span>
+            <span className="font-black text-slate-900 text-[26px] italic tracking-tight">Razorpay</span>
           </div>
         </div>
       </div>
 
       {/* Bottom Button Panel */}
-      <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5] to-transparent select-none z-10">
+      <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#FAF8F5] via-[#FAF8F5] to-transparent select-none z-10">
         <button
           onClick={handlePaymentSubmit}
           disabled={!isFormValid() || isProcessing}
-          className={`w-full py-4 text-white font-extrabold text-2xl rounded-2xl shadow-lg border flex items-center justify-center gap-3 transition select-none ${
+          className={`w-full py-5.5 text-white font-extrabold text-[36px] rounded-[24px] shadow-lg border-2 flex items-center justify-center gap-3 transition select-none ${
             isFormValid() && !isProcessing
               ? "bg-[#F97316] hover:bg-orange-600 border-orange-400/50 active:scale-[0.98] cursor-pointer"
               : "bg-orange-400/60 border-orange-300/40 text-white/70 cursor-not-allowed"
@@ -524,18 +520,17 @@ export default function Screen5() {
         >
           {isProcessing ? (
             <div className="flex items-center gap-2">
-              <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-8 w-8 text-white" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
               <span>Processing...</span>
             </div>
           ) : (
-            <span>Pay ₹{amountPayable}</span>
+            <span>Pay ₹{amountPayable.toFixed(2)}</span>
           )}
         </button>
       </div>
-
       {/* Footer Image matching Screen 5 layout (grass and chick) */}
       <div className="absolute bottom-0 left-0 right-0 h-10 select-none pointer-events-none z-0">
         {/* Grass background */}

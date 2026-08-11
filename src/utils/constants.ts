@@ -8,7 +8,7 @@ export const EGG_TRAYS: TrayInfo[] = [
     pricePerEgg: 1,
     basePrice: 6,
     stock: 40,
-    image: "/images/page_3_img_1.png",
+    image: "/images/page_3_img_3.png",
     eggCount: 6,
   },
   {
@@ -18,7 +18,7 @@ export const EGG_TRAYS: TrayInfo[] = [
     pricePerEgg: 2,
     basePrice: 24,
     stock: 40,
-    image: "/images/page_3_img_2.png",
+    image: "/images/page_3_img_1.png",
     eggCount: 12,
   },
   {
@@ -28,7 +28,7 @@ export const EGG_TRAYS: TrayInfo[] = [
     pricePerEgg: 3,
     basePrice: 90,
     stock: 7,
-    image: "/images/page_3_img_3.png",
+    image: "/images/page_3_img_2.png",
     eggCount: 30,
   }
 ];

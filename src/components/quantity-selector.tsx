@@ -28,27 +28,27 @@ export default function QuantitySelector({ id, quantity, onWarning }: QuantitySe
   };
 
   return (
-    <div className="flex items-center bg-zinc-100 border border-zinc-200/50 rounded-full p-0.5 select-none w-[110px] justify-between">
+    <div className="flex items-center bg-zinc-100 border border-zinc-200/50 rounded-full p-1.5 select-none w-[180px] justify-between">
       {/* Decrement Button */}
       <button
         onClick={handleDecrease}
         disabled={quantity <= 0}
-        className="w-7 h-7 rounded-full flex items-center justify-center text-zinc-600 hover:bg-zinc-200/60 disabled:opacity-30 disabled:hover:bg-transparent transition active:scale-90 cursor-pointer"
+        className="w-12 h-12 rounded-full flex items-center justify-center text-zinc-600 hover:bg-zinc-200/60 disabled:opacity-30 disabled:hover:bg-transparent transition active:scale-90 cursor-pointer"
       >
-        <Minus className="w-3.5 h-3.5 stroke-[3.5]" />
+        <Minus className="w-6 h-6 stroke-[3.5]" />
       </button>
 
       {/* Display Value */}
-      <span className="text-sm font-black text-zinc-900 text-center">
+      <span className="text-[24px] font-black text-zinc-900 text-center">
         {String(quantity).padStart(2, "0")}
       </span>
 
       {/* Increment Button */}
       <button
         onClick={handleIncrease}
-        className="w-7 h-7 rounded-full flex items-center justify-center bg-[#F97316] text-white hover:bg-orange-600 transition active:scale-90 cursor-pointer shadow-sm"
+        className="w-12 h-12 rounded-full flex items-center justify-center bg-[#F97316] text-white hover:bg-orange-600 transition active:scale-90 cursor-pointer shadow-sm"
       >
-        <Plus className="w-3.5 h-3.5 stroke-[3.5]" />
+        <Plus className="w-6 h-6 stroke-[3.5]" />
       </button>
     </div>
   );
