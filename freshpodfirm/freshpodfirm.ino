@@ -29,6 +29,9 @@ WiFiClientSecure secureClient;
 Preferences preferences;
 int currentRelayIndex = 0;  // Tracks which relay to trigger next (0-4)
 
+HTTPClient http;
+bool httpInitialized = false;
+
 void connectWiFi();
 void resetPaymentStatus();
 void loadRelayIndex();
@@ -89,73 +92,93 @@ void loop() {
   // Ensure WiFi is connected
   if (WiFi.status() != WL_CONNECTED) {
     connectWiFi();
+    if (httpInitialized) {
+      http.end();
+      httpInitialized = false;
+    }
+  }
+
+  // Initialize HTTP client with keep-alive if not already done
+  if (!httpInitialized) {
+    http.setReuse(true); // Keep-Alive
+    if (http.begin(secureClient, API_URL)) {
+      httpInitialized = true;
+      Serial.println("[HTTP] Keep-Alive connection established.");
+    } else {
+      Serial.println("[HTTP] Keep-Alive initialization failed.");
+      delay(1000);
+      return;
+    }
   }
 
   // Poll payment status API
-  HTTPClient http;
-  if (http.begin(secureClient, API_URL)) {
-    Serial.println("Polling payment status...");
-    int httpResponseCode = http.GET();
+  int httpResponseCode = http.GET();
 
-    if (httpResponseCode == 200) {
-      String response = http.getString();
-      Serial.print("Response: ");
-      Serial.println(response);
+  if (httpResponseCode == 200) {
+    String response = http.getString();
+    // Parse JSON response: {"status":"success"}
+    StaticJsonDocument<256> doc;
+    DeserializationError error = deserializeJson(doc, response);
 
-      // Parse JSON response: {"status":"success"}
-      StaticJsonDocument<256> doc;
-      DeserializationError error = deserializeJson(doc, response);
+    if (!error) {
+      const char* status = doc["status"];
+      if (status && (strcasecmp(status, "success") == 0 || strcasecmp(status, "SUCCESS") == 0)) {
+        int pin = relayPins[currentRelayIndex];
 
-      if (!error) {
-        const char* status = doc["status"];
-        if (status && (strcasecmp(status, "success") == 0 || strcasecmp(status, "SUCCESS") == 0)) {
-          int pin = relayPins[currentRelayIndex];
+        Serial.print("[ALERT] Payment Success! Activating Relay ");
+        Serial.print(currentRelayIndex + 1);
+        Serial.print(" (Pin ");
+        Serial.print(pin);
+        Serial.println(")");
 
-          Serial.print("[ALERT] Payment Success! Activating Relay ");
-          Serial.print(currentRelayIndex + 1);
-          Serial.print(" (Pin ");
-          Serial.print(pin);
-          Serial.println(")");
+        // 1. Turn the current relay ON
+        digitalWrite(pin, HIGH);
 
-          // 1. Turn the current relay ON
-          digitalWrite(pin, HIGH);
+        // 2. Instantly reset API status to completed so it doesn't trigger multiple times
+        resetPaymentStatus();
 
-          // 2. Instantly reset API status to completed so it doesn't trigger multiple times
-          resetPaymentStatus();
+        // Close the keep-alive connection during the 15-second delay to release resources
+        http.end();
+        httpInitialized = false;
 
-          // 3. Keep the relay on for 15 seconds, then turn off
-          delay(RELAY_ON_TIME_MS);
-          digitalWrite(pin, LOW);
+        // 3. Keep the relay on for 15 seconds, then turn off
+        delay(RELAY_ON_TIME_MS);
+        digitalWrite(pin, LOW);
 
-          Serial.print("Relay ");
-          Serial.print(currentRelayIndex + 1);
-          Serial.println(" deactivated. Lock closed.");
+        Serial.print("Relay ");
+        Serial.print(currentRelayIndex + 1);
+        Serial.println(" deactivated. Lock closed.");
 
-          // 4. Advance to the next relay (round-robin: 0→1→2→3→4→0→...)
-          currentRelayIndex = (currentRelayIndex + 1) % NUM_RELAYS;
-          saveRelayIndex();
+        // 4. Advance to the next relay (round-robin: 0→1→2→3→4→0→...)
+        currentRelayIndex = (currentRelayIndex + 1) % NUM_RELAYS;
+        saveRelayIndex();
 
-          Serial.print("Next payment will trigger Relay ");
-          Serial.print(currentRelayIndex + 1);
-          Serial.print(" (Pin ");
-          Serial.print(relayPins[currentRelayIndex]);
-          Serial.println(")");
-        }
-      } else {
-        Serial.print("JSON Deserialization failed: ");
-        Serial.println(error.c_str());
+        Serial.print("Next payment will trigger Relay ");
+        Serial.print(currentRelayIndex + 1);
+        Serial.print(" (Pin ");
+        Serial.print(relayPins[currentRelayIndex]);
+        Serial.println(")");
+        
+        return; // Return immediately to start fresh in the next loop
       }
     } else {
-      Serial.print("HTTP GET failed, response code: ");
-      Serial.println(httpResponseCode);
+      Serial.print("JSON Deserialization failed: ");
+      Serial.println(error.c_str());
     }
-    http.end();
   } else {
-    Serial.println("HTTP connection failed.");
+    Serial.print("HTTP GET failed, response code: ");
+    Serial.println(httpResponseCode);
+    
+    // Close client on error to trigger a fresh connection in the next loop
+    http.end();
+    httpInitialized = false;
+    
+    delay(1000); // Wait 1 second before retrying
+    return;
   }
 
-  // Poll status every 2 seconds
-  delay(2000);
+  // Poll status very fast (every 200ms) for ultra-low latency
+  delay(200);
 }
 
 void resetPaymentStatus() {

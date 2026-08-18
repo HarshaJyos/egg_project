@@ -7,11 +7,17 @@ export const dynamic = "force-dynamic";
 // Use a temp file to share state reliably across serverless invocations
 const STATUS_FILE = path.join("/tmp", "payment_status_vending.json");
 
+let memoryStatus: string | null = null;
+
 function getStatus() {
+  if (memoryStatus !== null) {
+    return memoryStatus;
+  }
   try {
     if (fs.existsSync(STATUS_FILE)) {
       const data = fs.readFileSync(STATUS_FILE, "utf-8");
-      return JSON.parse(data).status;
+      memoryStatus = JSON.parse(data).status;
+      return memoryStatus;
     }
   } catch (e) {
     console.error("Error reading payment status:", e);
@@ -20,6 +26,7 @@ function getStatus() {
 }
 
 function setStatus(status: string) {
+  memoryStatus = status;
   try {
     fs.writeFileSync(STATUS_FILE, JSON.stringify({ status }), "utf-8");
   } catch (e) {
