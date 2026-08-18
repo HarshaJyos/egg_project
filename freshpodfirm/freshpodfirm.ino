@@ -2,33 +2,57 @@
 #include <HTTPClient.h>
 #include <WiFiClientSecure.h>
 #include <ArduinoJson.h>
+#include <Preferences.h>
 
 // ==========================================
 // CONFIGURATION
 // ==========================================
-#define WIFI_SSID "Freshpod"
+#define WIFI_SSID     "Freshpod"
 #define WIFI_PASSWORD "passw0rd"
 
-// API Endpoint on the frontend domain
+// API Endpoint
 #define API_URL "https://www.hanish.coreblock.in/api/payment-status"
 
-// Relay Configuration
-#define RELAY_PIN 13           // Pin 13 has to turn on (Door Lock)
-#define RELAY_ON_TIME_MS 15000 // 15 seconds active state (unlocked)
+// Relay Configuration (5 relays, pin 19 removed)
+#define RELAY1  13
+#define RELAY2  12
+#define RELAY3   2
+#define RELAY4   4
+#define RELAY5  18
+
+#define NUM_RELAYS       5
+#define RELAY_ON_TIME_MS 15000  // 15 seconds active state (unlocked)
+
+const int relayPins[NUM_RELAYS] = { RELAY1, RELAY2, RELAY3, RELAY4, RELAY5 };
 
 WiFiClientSecure secureClient;
+Preferences preferences;
+int currentRelayIndex = 0;  // Tracks which relay to trigger next (0-4)
 
 void connectWiFi();
 void resetPaymentStatus();
+void loadRelayIndex();
+void saveRelayIndex();
 
 void setup() {
   Serial.begin(115200);
   delay(10);
   Serial.println("\n--- Freshpod ESP32 Firmware Starting ---");
 
-  // Configure Relay Pin
-  pinMode(RELAY_PIN, OUTPUT);
-  digitalWrite(RELAY_PIN, LOW); // Start with relay off (lock closed)
+  // Configure all relay pins as OUTPUT and set LOW
+  for (int i = 0; i < NUM_RELAYS; i++) {
+    pinMode(relayPins[i], OUTPUT);
+    digitalWrite(relayPins[i], LOW);
+  }
+  Serial.println("All 5 relay pins configured and OFF.");
+
+  // Load last used relay index from flash memory
+  loadRelayIndex();
+  Serial.print("Next relay to trigger: Relay ");
+  Serial.print(currentRelayIndex + 1);
+  Serial.print(" (Pin ");
+  Serial.print(relayPins[currentRelayIndex]);
+  Serial.println(")");
 
   // Initialize WiFi connection
   connectWiFi();
@@ -49,7 +73,7 @@ void connectWiFi() {
     delay(500);
     Serial.print(".");
     retryCount++;
-    if (retryCount > 60) { // Retry/reconnect every 30 seconds
+    if (retryCount > 60) {
       Serial.println("\nConnection timeout, retrying...");
       WiFi.disconnect();
       WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
@@ -85,18 +109,37 @@ void loop() {
       if (!error) {
         const char* status = doc["status"];
         if (status && (strcasecmp(status, "success") == 0 || strcasecmp(status, "SUCCESS") == 0)) {
-          Serial.println("[ALERT] Payment Success detected! Activating Relay 13...");
+          int pin = relayPins[currentRelayIndex];
 
-          // 1. Turn relay 13 ON (Open the door/lock)
-          digitalWrite(RELAY_PIN, HIGH);
+          Serial.print("[ALERT] Payment Success! Activating Relay ");
+          Serial.print(currentRelayIndex + 1);
+          Serial.print(" (Pin ");
+          Serial.print(pin);
+          Serial.println(")");
 
-          // 2. Instantly reset API status to fail so it doesn't trigger multiple times
+          // 1. Turn the current relay ON
+          digitalWrite(pin, HIGH);
+
+          // 2. Instantly reset API status to completed so it doesn't trigger multiple times
           resetPaymentStatus();
 
-          // 3. Keep the relay on for 15 seconds to let the user open it, then turn it off
+          // 3. Keep the relay on for 15 seconds, then turn off
           delay(RELAY_ON_TIME_MS);
-          digitalWrite(RELAY_PIN, LOW);
-          Serial.println("Relay 13 deactivated. Lock closed.");
+          digitalWrite(pin, LOW);
+
+          Serial.print("Relay ");
+          Serial.print(currentRelayIndex + 1);
+          Serial.println(" deactivated. Lock closed.");
+
+          // 4. Advance to the next relay (round-robin: 0→1→2→3→4→0→...)
+          currentRelayIndex = (currentRelayIndex + 1) % NUM_RELAYS;
+          saveRelayIndex();
+
+          Serial.print("Next payment will trigger Relay ");
+          Serial.print(currentRelayIndex + 1);
+          Serial.print(" (Pin ");
+          Serial.print(relayPins[currentRelayIndex]);
+          Serial.println(")");
         }
       } else {
         Serial.print("JSON Deserialization failed: ");
@@ -133,4 +176,25 @@ void resetPaymentStatus() {
   } else {
     Serial.println("HTTP connection failed during status reset.");
   }
+}
+
+// ==========================================
+// PERSISTENT RELAY INDEX (survives reboot)
+// Uses ESP32 Preferences (NVS flash storage)
+// ==========================================
+void loadRelayIndex() {
+  preferences.begin("freshpod", true);  // read-only
+  currentRelayIndex = preferences.getInt("relayIdx", 0);
+  preferences.end();
+
+  // Safety: clamp to valid range
+  if (currentRelayIndex < 0 || currentRelayIndex >= NUM_RELAYS) {
+    currentRelayIndex = 0;
+  }
+}
+
+void saveRelayIndex() {
+  preferences.begin("freshpod", false);  // read-write
+  preferences.putInt("relayIdx", currentRelayIndex);
+  preferences.end();
 }
