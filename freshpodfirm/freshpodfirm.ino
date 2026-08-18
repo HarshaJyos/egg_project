@@ -117,14 +117,14 @@ void loop() {
 
 void resetPaymentStatus() {
   HTTPClient http;
-  String resetUrl = String(API_URL) + "?action=set&status=fail";
-  Serial.print("Resetting status to fail: ");
+  String resetUrl = String(API_URL) + "?action=set&status=completed";
+  Serial.print("Resetting status to completed: ");
   Serial.println(resetUrl);
 
   if (http.begin(secureClient, resetUrl)) {
     int httpResponseCode = http.GET();
     if (httpResponseCode == 200) {
-      Serial.println("Payment status reset to fail successfully.");
+      Serial.println("Payment status reset to completed successfully.");
     } else {
       Serial.print("Failed to reset payment status, response code: ");
       Serial.println(httpResponseCode);

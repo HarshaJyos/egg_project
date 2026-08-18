@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
 
+export const dynamic = "force-dynamic";
+
 // Use a temp file to share state reliably across serverless invocations
 const STATUS_FILE = path.join("/tmp", "payment_status_vending.json");
 

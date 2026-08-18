@@ -26,7 +26,7 @@ export default function Screen6() {
         const res = await fetch("/api/payment-status");
         const data = await res.json();
         const status = data.status ? data.status.toUpperCase() : "";
-        if (status === "SUCCESS") {
+        if (status === "SUCCESS" || status === "COMPLETED") {
           setPaymentStatus("SUCCESS");
           clearInterval(interval);
           setScreen(7); // Proceed to Screen 7 (Success Page)
